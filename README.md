@@ -37,7 +37,7 @@ A modern, intelligent chat interface built with React, TypeScript, and Material-
 - Quick reply suggestions
 - Message history persistence using IndexedDB
 - Chat history management (view, delete)
-- Multi-language support
+- Responsive design for mobile and desktop
 - Error handling and loading states
 
 ## 🛠️ Setup Instructions
@@ -213,6 +213,7 @@ CMD ["node", "dist/index.js"]
    - WebSocket API for quick replies
 
 4. **UI/UX**
+   - Responsive layout with mobile-first approach
    - Material-UI for consistent design
    - Dark/light theme support
 
