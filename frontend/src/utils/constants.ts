@@ -37,5 +37,3 @@ export const EMPTY_STATES = {
   NO_QUICK_REPLIES: "No quick replies available",
   NO_RESULTS: "No results found",
 } as const;
-
-export const MAX_MESSAGE_HEIGHT = 100;

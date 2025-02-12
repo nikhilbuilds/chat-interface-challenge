@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useChatStore } from "../../context/chatStore";
-import { Box, Typography } from "@mui/material";
-import { FixedSizeList as List } from "react-window";
+import { Box, Typography, Stack } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
@@ -11,11 +10,9 @@ import { SpeechService } from "../../services/speechService";
 import MessageRow from "./MessageRow";
 import ThinkingIndicator from "./ThinkingIndicator";
 import { showToast } from "../../utils/toast";
-import { MAX_MESSAGE_HEIGHT, TOAST_MESSAGES } from "../../utils/constants";
+import { TOAST_MESSAGES } from "../../utils/constants";
 import QuickReplies from "./QuickReplies";
 import MessageInput from "./MessageInput";
-
-const MESSAGE_HEIGHT = MAX_MESSAGE_HEIGHT;
 
 const Chat = () => {
   const {
@@ -36,10 +33,8 @@ const Chat = () => {
     null
   );
   const speechService = SpeechService.getInstance();
-  const listRef = useRef<List>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const [listHeight, setListHeight] = useState(window.innerHeight);
 
   useEffect(() => {
     setupWebSocket((message) => {
@@ -86,41 +81,6 @@ const Chat = () => {
     }
   };
 
-  const renderRow = ({
-    index,
-    style,
-  }: {
-    index: number;
-    style: React.CSSProperties;
-  }) => (
-    <MessageRow
-      index={index}
-      style={style}
-      message={messages[index]}
-      speakingMessageId={speakingMessageId}
-      onSpeak={handleSpeak}
-    />
-  );
-
-  useEffect(() => {
-    if (listRef.current && messages.length > 0) {
-      listRef.current.scrollToItem(messages.length - 1, "end");
-    }
-  }, [messages]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      const height = isMobile
-        ? window.innerHeight - 180
-        : window.innerHeight * 0.9 - 140;
-      setListHeight(height);
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [isMobile]);
-
   const handleQuickReply = (reply: string) => {
     setInput(reply);
     handleSend();
@@ -138,7 +98,7 @@ const Chat = () => {
       <Box
         sx={{
           flex: 1,
-          overflow: "hidden",
+          overflow: "auto",
           bgcolor: darkMode ? "#5f5f5f" : "white",
           position: "relative",
         }}
@@ -159,18 +119,26 @@ const Chat = () => {
             <Typography>No messages yet. Start a conversation!</Typography>
           </Box>
         ) : (
-          <List
-            ref={listRef}
-            height={listHeight}
-            itemCount={messages.length}
-            itemSize={MESSAGE_HEIGHT}
-            width="100%"
-            overscanCount={5}
-            style={{ overflowX: "hidden" }}
-            initialScrollOffset={messages.length * MESSAGE_HEIGHT}
+          <Stack
+            spacing={1}
+            sx={{
+              p: 1,
+              pb: { xs: 1, sm: 1 },
+              height: "90%",
+              overflowY: "auto",
+            }}
           >
-            {renderRow}
-          </List>
+            {messages.map((message, index) => (
+              <MessageRow
+                key={message.id || index}
+                index={index}
+                message={message}
+                speakingMessageId={speakingMessageId}
+                onSpeak={handleSpeak}
+              />
+            ))}
+            <div ref={messagesEndRef} />
+          </Stack>
         )}
 
         {isProcessing && <ThinkingIndicator isProcessing={isProcessing} />}
@@ -182,10 +150,12 @@ const Chat = () => {
           bgcolor: "background.paper",
           borderTop: 1,
           borderColor: "divider",
+          position: { xs: "relative", sm: "relative" },
+          bottom: { xs: 20, sm: 2 },
+          zIndex: 1,
         }}
       >
         <QuickReplies onReplyClick={handleQuickReply} />
-
         <MessageInput
           input={input}
           isLoading={isLoading}
